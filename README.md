@@ -93,27 +93,26 @@ health/{{ tag_name_list | tag_path("people", strip_root=True, default="general")
 
 ## Installation (Docker / TrueNAS app)
 
-1. Put the wheel in the directory mounted as `/plugins`, with a stable link
-   pointing at it. `contrib/install-wheel.sh` does that (download from a release,
-   SHA-256 check, link switch, rollback hint):
+1. Put the update script in the host directory mounted as `/plugins` and run
+   it as root:
+
+   ```
+   cd /mnt/tank/apps/paperless/plugins
+   curl -fsSLO https://github.com/en-arch-eu/paperless-tag-path/releases/latest/download/update-tag-path.sh
+   chmod 755 update-tag-path.sh
+   ./update-tag-path.sh
+   ```
+
+   It downloads the latest wheel, checks it against `SHA256SUMS` from the
+   release and points a stable, relative link at it (the link is resolved
+   inside the container):
 
    ```
    plugins/
-     paperless_tag_path-0.1.0-py3-none-any.whl
-     paperless_tag_path.whl -> paperless_tag_path-0.1.0-py3-none-any.whl
+     paperless_tag_path-0.1.1-py3-none-any.whl
+     paperless_tag_path.whl -> paperless_tag_path-0.1.1-py3-none-any.whl
+     update-tag-path.sh
    ```
-
-   The link must be relative (it is resolved inside the container).
-
-   On the host, as root, for example:
-
-   ```
-   ./install-wheel.sh --dir /mnt/tank/apps/paperless/plugins \
-     https://github.com/en-arch-eu/paperless-tag-path/releases/download/v0.1.0/paperless_tag_path-0.1.0-py3-none-any.whl \
-     paperless_tag_path.whl
-   ```
-
-   The script checks the file against `SHA256SUMS` from the same release.
 
 2. Set two environment variables once and restart:
 
@@ -122,10 +121,11 @@ health/{{ tag_name_list | tag_path("people", strip_root=True, default="general")
    PAPERLESS_APPS=paperless_tag_path.apps.TagPathConfig
    ```
 
-3. Check the log for `[tag-path] filter registered, version 0.1.0`.
+3. Check the log for `[tag-path] filter registered, version 0.1.1`.
 
-Updating is: install the new wheel (the link moves), restart. Rolling back is
-the same with the previous file.
+Updating: `./update-tag-path.sh` (latest release; the script also updates
+itself), restart. Rolling back: `./update-tag-path.sh 0.1.0` (any released
+version; one already in the directory works offline), restart.
 
 The wheel is imported directly as a zip (the package is pure Python), not
 installed with `pip`. A `/custom-cont-init.d` script cannot install it: in the

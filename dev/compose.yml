@@ -22,7 +22,7 @@ services:
       - data:/usr/src/paperless/data
     environment:
       PAPERLESS_REDIS: redis://broker:6379
-      PYTHONPATH: /plugins/paperless_tag_path-0.1.0-py3-none-any.whl
+      PYTHONPATH: /plugins/paperless_tag_path-0.1.1-py3-none-any.whl
       PAPERLESS_APPS: paperless_tag_path.apps.TagPathConfig
       PAPERLESS_ADMIN_USER: admin
       PAPERLESS_ADMIN_PASSWORD: admin

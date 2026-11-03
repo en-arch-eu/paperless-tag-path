@@ -2,7 +2,8 @@ name: release
 
 # Push a tag vMAJOR.MINOR.PATCH equal to the version in _version.py:
 # builds the wheel and sdist and publishes them with SHA256SUMS as a
-# GitHub release (contrib/install-wheel.sh verifies against SHA256SUMS).
+# GitHub release, together with contrib/update-tag-path.sh
+# (the update script verifies everything against SHA256SUMS).
 on:
   push:
     tags: ["v*"]
@@ -35,8 +36,10 @@ jobs:
       - name: Build
         run: uv build
 
-      - name: Checksums
-        run: cd dist && sha256sum * > SHA256SUMS && cat SHA256SUMS
+      - name: Release files and checksums
+        run: |
+          cp contrib/update-tag-path.sh dist/
+          cd dist && sha256sum * > SHA256SUMS && cat SHA256SUMS
 
       - name: Publish release
         env:
@@ -44,4 +47,4 @@ jobs:
         run: |
           gh release create "$GITHUB_REF_NAME" dist/* \
             --title "$GITHUB_REF_NAME" \
-            --notes "See [CHANGELOG.md](https://github.com/${GITHUB_REPOSITORY}/blob/${GITHUB_REF_NAME}/CHANGELOG.md). Install with \`contrib/install-wheel.sh\`."
+            --notes "See [CHANGELOG.md](https://github.com/${GITHUB_REPOSITORY}/blob/${GITHUB_REF_NAME}/CHANGELOG.md). Install or update with \`update-tag-path.sh\` (see README)."
