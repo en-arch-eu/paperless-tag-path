@@ -5,7 +5,7 @@ versions: [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
-## [0.1.0] - unreleased
+## [0.1.0] - 2026-11-03
 
 First version: the `tag_path` filter for storage path templates
 (Paperless-ngx 3.4), as proposed in
