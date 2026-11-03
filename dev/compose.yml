@@ -1,0 +1,34 @@
+# Throwaway Paperless for testing the filter. From the plugin directory:
+#   uv build
+#   docker compose -f dev/compose.yml --env-file dev/.env up -d
+# dev/.env (git-ignored) holds a random PAPERLESS_SECRET_KEY.
+# UI on http://localhost:8010 (admin / admin), stored files in dev/media.
+# Local test data only.
+#
+# The app is imported straight from the wheel (a zip) on PYTHONPATH, not
+# installed with pip: in 3.4 the custom init scripts run only after
+# migrations, and migrations already load PAPERLESS_APPS.
+name: paperless-tag-path-dev
+services:
+  broker:
+    image: docker.io/library/redis:8
+  webserver:
+    image: ghcr.io/paperless-ngx/paperless-ngx:${PAPERLESS_VERSION:-3.4.0}
+    depends_on: [broker]
+    ports: ["8010:8000"]
+    volumes:
+      - ../dist:/plugins:ro
+      - ./media:/usr/src/paperless/media
+      - data:/usr/src/paperless/data
+    environment:
+      PAPERLESS_REDIS: redis://broker:6379
+      PYTHONPATH: /plugins/paperless_tag_path-0.1.0-py3-none-any.whl
+      PAPERLESS_APPS: paperless_tag_path.apps.TagPathConfig
+      PAPERLESS_ADMIN_USER: admin
+      PAPERLESS_ADMIN_PASSWORD: admin
+      PAPERLESS_OCR_LANGUAGE: eng
+      PAPERLESS_URL: http://localhost:8010
+      PAPERLESS_SECRET_KEY: ${PAPERLESS_SECRET_KEY:?create dev/.env with PAPERLESS_SECRET_KEY}
+
+volumes:
+  data:

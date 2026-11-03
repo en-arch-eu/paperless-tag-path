@@ -1,0 +1,35 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "paperless-tag-path"
+dynamic = ["version"]
+description = "Jinja filter for Paperless-ngx storage paths that builds directories from the tag hierarchy"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "GPL-3.0-or-later" }
+dependencies = [
+    # Paperless-ngx 3.4 ships pathvalidate, jinja2 and Django; declared here so
+    # the pure logic can be tested in a bare environment. Django is provided
+    # by Paperless and not needed by the tests.
+    "pathvalidate>=3.3,<4",
+    "jinja2>=3.1,<4",
+]
+
+[dependency-groups]
+dev = ["pytest>=8"]
+
+[project.urls]
+Homepage = "https://github.com/en-arch-eu/paperless-tag-path"
+Changelog = "https://github.com/en-arch-eu/paperless-tag-path/blob/main/CHANGELOG.md"
+
+[tool.hatch.version]
+path = "src/paperless_tag_path/_version.py"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/paperless_tag_path"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]

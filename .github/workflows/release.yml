@@ -1,0 +1,47 @@
+name: release
+
+# Push a tag vMAJOR.MINOR.PATCH equal to the version in _version.py:
+# builds the wheel and sdist and publishes them with SHA256SUMS as a
+# GitHub release (contrib/install-wheel.sh verifies against SHA256SUMS).
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: astral-sh/setup-uv@18d369b23da25a81e9458561248e1aafff6a70fa # v10.3.1
+        with:
+          python-version: "3.12"
+
+      - name: Tag must be vMAJOR.MINOR.PATCH and equal the package version
+        run: |
+          version=$(sed -n 's/^__version__ = "\(.*\)"$/\1/p' src/paperless_tag_path/_version.py)
+          echo "package version: $version, tag: $GITHUB_REF_NAME"
+          echo "$version" | grep -Eq '^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$' \
+            || { echo "version is not MAJOR.MINOR.PATCH"; exit 1; }
+          [ "v$version" = "$GITHUB_REF_NAME" ] || { echo "tag does not match version"; exit 1; }
+          grep -q "^## \[$version\] - [0-9]\{4\}-[0-9]\{2\}-[0-9]\{2\}$" CHANGELOG.md \
+            || { echo "CHANGELOG.md has no dated entry for $version"; exit 1; }
+
+      - name: Tests
+        run: uv run --frozen pytest -q
+      - name: Build
+        run: uv build
+
+      - name: Checksums
+        run: cd dist && sha256sum * > SHA256SUMS && cat SHA256SUMS
+
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" dist/* \
+            --title "$GITHUB_REF_NAME" \
+            --notes "See [CHANGELOG.md](https://github.com/${GITHUB_REPOSITORY}/blob/${GITHUB_REF_NAME}/CHANGELOG.md). Install with \`contrib/install-wheel.sh\`."
